@@ -6,19 +6,19 @@ import {
   DebugConfigurationProvider,
   ProviderResult,
   window,
-} from "vscode";
+} from "coc.nvim";
 import { ConfigurationField } from "../../core/configuration";
 
 export function activeDenoDebug(
   context: ExtensionContext,
   config: ConfigurationField
 ): void {
-  context.subscriptions.push(
-    debug.registerDebugConfigurationProvider(
-      "deno",
-      new DenoDebugConfigurationProvider(config)
-    )
-  );
+  // context.subscriptions.push(
+  //   debug.registerDebugConfigurationProvider(
+  //     "deno",
+  //     new DenoDebugConfigurationProvider(config)
+  //   )
+  // );
 }
 
 export class DenoDebugConfigurationProvider

@@ -1,5 +1,5 @@
 import { IConnection } from "vscode-languageserver";
-import { WorkspaceFolder } from "vscode";
+import { WorkspaceFolder } from "coc.nvim";
 
 import { Request } from "../../core/const";
 import { ConfigurationField } from "../../core/configuration";

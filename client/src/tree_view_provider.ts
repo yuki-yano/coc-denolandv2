@@ -11,8 +11,8 @@ import {
   commands,
   window,
   Range,
-} from "vscode";
-import { Disposable } from "vscode-languageclient";
+} from "coc.nvim";
+import { Disposable } from "coc.nvim";
 
 import { Extension } from "./extension";
 import { escapeRegExp, normalizeFilepath } from "../../core/util";

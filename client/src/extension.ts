@@ -7,8 +7,6 @@ import {
   commands,
   extensions,
   ExtensionContext,
-  StatusBarAlignment,
-  TextEditor,
   WorkspaceConfiguration,
   Uri,
   StatusBarItem,
@@ -16,18 +14,16 @@ import {
   OutputChannel,
   Diagnostic,
   CodeActionContext,
-  ProgressLocation,
   TextDocument,
   languages,
-  env,
   Position,
-} from "vscode";
+} from "coc.nvim";
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-} from "vscode-languageclient";
+} from "coc.nvim";
 import getport from "get-port";
 import execa from "execa";
 
@@ -97,7 +93,7 @@ export class Extension {
   // extension context
   public context!: ExtensionContext;
   // typescript API
-  private tsAPI!: TypescriptAPI;
+  // private tsAPI!: TypescriptAPI;
   // LSP client
   public client: LanguageClient | undefined;
   private clientReady = false;
@@ -172,7 +168,6 @@ export class Extension {
   private async StartDenoLanguageServer() {
     await window.withProgress(
       {
-        location: ProgressLocation.Window,
         title: "Initializing Deno Language Server...",
       },
       async () => {
@@ -421,29 +416,9 @@ Executable ${this.denoInfo.executablePath}`;
       this.client.sendNotification(Notification.diagnostic, uri.toString());
     }
   }
-  private sync(document?: TextDocument) {
-    if (document) {
-      const relativeFilepath = workspace.asRelativePath(
-        document.uri.fsPath,
-        false
-      );
-      if (
-        isValidDenoDocument(document.languageId) &&
-        !path.isAbsolute(relativeFilepath)
-      ) {
-        const config = this.getConfiguration(document.uri);
-
-        commands.executeCommand(
-          "setContext",
-          "denoExtensionActivated",
-          !!config.enable
-        );
-
-        this.tsAPI.configurePlugin(TYPESCRIPT_DENO_PLUGIN_ID, config);
-        this.updateDiagnostic(document.uri);
-      }
-    }
-    this.updateStatusBarVisibility(window.activeTextEditor?.document);
+  private async sync() {
+    const currentState = await workspace.getCurrentState();
+    this.updateStatusBarVisibility(currentState.document);
   }
   private async setDocumentLanguage(document?: TextDocument) {
     if (!document) {
@@ -471,30 +446,30 @@ Executable ${this.denoInfo.executablePath}`;
   // activate function for vscode
   public async activate(context: ExtensionContext): Promise<void> {
     this.context = context;
-    this.tsAPI = await getTypescriptAPI();
+    // this.tsAPI = await getTypescriptAPI();
 
-    this.tsAPI.configurePlugin(
-      TYPESCRIPT_DENO_PLUGIN_ID,
-      this.getConfiguration(window.activeTextEditor?.document.uri)
-    );
+    // this.tsAPI.configurePlugin(
+    //   TYPESCRIPT_DENO_PLUGIN_ID,
+    //   this.getConfiguration(window.activeTextEditor?.document.uri)
+    // );
 
-    this.statusBar = window.createStatusBarItem(StatusBarAlignment.Right, 0);
+    // this.statusBar = window.createStatusBarItem(StatusBarAlignment.Right, 0);
 
     this.context.subscriptions.push(this.statusBar);
 
     this.output = window.createOutputChannel("Deno");
     this.context.subscriptions.push(this.output);
 
-    this.context.subscriptions.push(
-      window.onDidChangeActiveTextEditor(async (editor) => {
-        this.sync(editor?.document);
-        await this.setDocumentLanguage(editor?.document);
-      })
-    );
+    // this.context.subscriptions.push(
+    //   window.onDidChangeActiveTextEditor(async (editor) => {
+    //     this.sync(editor?.document);
+    //     await this.setDocumentLanguage(editor?.document);
+    //   })
+    // );
 
     this.context.subscriptions.push(
-      workspace.onDidOpenTextDocument(async (document) => {
-        this.sync(document);
+      workspace.onDidOpenTextDocument(async () => {
+        await this.sync();
       })
     );
 
@@ -502,10 +477,10 @@ Executable ${this.denoInfo.executablePath}`;
       this.StartDenoLanguageServer();
     });
 
-    this.registerCommand("_copy_text", async (text: string) => {
-      await env.clipboard.writeText(text);
-      await window.showInformationMessage(`Copied to clipboard.`);
-    });
+    // this.registerCommand("_copy_text", async (text: string) => {
+    //   await env.clipboard.writeText(text);
+    //   await window.showInformationMessage(`Copied to clipboard.`);
+    // });
 
     this.registerCommand("_init_project", async () => {
       try {
@@ -726,8 +701,8 @@ Executable ${this.denoInfo.executablePath}`;
       },
     });
 
-    this.watchConfiguration(() => {
-      this.sync(window.activeTextEditor?.document);
+    this.watchConfiguration(async () => {
+      await this.sync();
     });
 
     await this.StartDenoLanguageServer();
@@ -739,7 +714,7 @@ Executable ${this.denoInfo.executablePath}`;
       window.registerTreeDataProvider("deno", treeView)
     );
 
-    this.sync(window.activeTextEditor?.document);
+    await this.sync();
 
     const extension = extensions.getExtension(this.id);
 

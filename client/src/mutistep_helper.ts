@@ -8,7 +8,7 @@ import {
   QuickInputButton,
   QuickInput,
   QuickInputButtons,
-} from "vscode";
+} from "coc.nvim";
 
 // https://github.com/microsoft/vscode-extension-samples/blob/9b8701dceac5fab83345356743170bca609c87f9/quickinput-sample/src/multiStepInput.ts#L136
 class InputFlowAction {

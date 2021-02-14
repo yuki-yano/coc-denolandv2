@@ -1,5 +1,5 @@
 import { MultiStepInput } from "./mutistep_helper";
-import { QuickPickItem } from "vscode";
+import { QuickPickItem } from "coc.nvim";
 
 interface State {
   title: string;
